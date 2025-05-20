@@ -1,0 +1,27 @@
+# Static configuration
+api:
+  dashboard: true
+  insecure: true  # Disable this when adding security later
+
+entryPoints:
+  web:
+    address: ":80"
+  metrics:
+    address: :8082
+  
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    entryPoint: metrics
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: "public"
+
+log:
+  level: INFO
+
+accessLog: {}  # Enable access logs

@@ -1,0 +1,38 @@
+# === Root level ===
+/old/
+/about_me/
+
+# === Docker folder ===
+docker/frontend-about_me/
+docker/info/
+docker/compose/docker-compose-portfolio.yml
+docker/compose/docker-compose-infrastructure.yml
+docker/compose/docker-compose-authentik.yml
+docker/compose/docker-compose-docker-proxy.yml
+docker/authntik/
+docker/secrets/
+docker/traefik/certificates/
+
+# === Backend ===
+backend/.venv/
+backend/scripts/
+backend/app/docs/
+
+# Python cache files everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# .env files everywhere
+**/.env
+
+# === Frontend ===
+frontend/node_modules/
+frontend/dist/
+frontend/.eslintcache
+
+# === VS Code settings everywhere
+**/.vscode/
+
+# Deploy scripts
+deploy2.sh

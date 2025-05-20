@@ -1,0 +1,154 @@
+include:
+  ########################### SERVICES
+  # PREFIX udms = Ultimate Docker Media Server
+  # HOSTNAME=udms - defined in .env
+ 
+  # CORE
+  - ./docker/compose/docker-compose-networks.yml
+  - ./docker/compose/docker-compose-authentik.yml
+  - ./docker/compose/docker-compose-infrastructure.yml
+  - ./docker/compose/docker-compose-portfolio.yml
+
+services:
+  db:
+    image: postgres:17.4-alpine3.21
+    container_name: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    networks:
+      - traefik-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      start_period: 3s   # Allow DB a brief time to start before checks begin
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: unless-stopped
+    networks:
+      - traefik-net
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}"
+      SECRET_KEY: ${SECRET_KEY}
+      UVICORN_WORKERS: "4"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/health || exit 1"]
+      start_period: 5s  # Allow app to initialize before healthcheck
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      # - "traefik.http.routers.backend.middlewares=strip-api@docker"
+      # - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/api"
+      # - "traefik.http.middlewares.strip-api.stripprefix.prefixes=/attentify"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      - "traefik.http.routers.backend.service=backend"
+
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.rule=Host(`api.parzivalll.my.id`) && PathPrefix(`/attentify`)"
+
+  reverse-proxy:
+    image: traefik:3.3.4
+    container_name: reverse-proxy
+    restart: unless-stopped
+    command:
+      - "--log.level=DEBUG"
+      - --providers.docker=true
+      - --accesslog=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.http.redirections.entryPoint.to=web
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.asDefault=true
+    ports:
+      - "80:80"      # Main HTTP entry point.
+      - "443:443"  # Main HTTPS entry point.
+      # - "8080:8080"  # Dashboard (ensure proper access control in production).
+      - "8082:8082"  # Metrics endpoint.
+    volumes:
+      - ./docker/traefik/dynamic:/dynamic:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - "./docker/traefik/certificates:/certs:ro"
+    labels:
+       - "traefik.enable=true"
+       - "traefik.http.routers.traefik.rule=Host(`traefik.parzivalll.my.id`)"
+       - "traefik.http.routers.traefik.entrypoints=websecure"
+       - "traefik.http.routers.traefik.service=api@internal"
+       - "traefik.http.routers.traefik.middlewares=chain-authentik@file"
+
+    networks:
+      - public
+      - traefik-net
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+  
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp  # Logs and cache in tmpfs (RAM)
+      - /var/cache/nginx  # Store cache in tmpfs to improve performance
+      - /var/run  # Ensure runtime data is in memory
+    networks:
+      - traefik-net
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./docker/frontend/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/frontend/nginx.conf:/etc/nginx/nginx.conf:ro
+    environment:
+      VITE_API_URL: /api
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/ || exit 1"]
+      start_period: 5s   # Allow Nginx to start
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.sec-headers.headers.customresponseheaders.X-Content-Type-Options=nosniff"
+      - "traefik.http.routers.frontend.middlewares=sec-headers@docker"
+      - "traefik.http.routers.frontend.service=frontend"
+
+      - "traefik.http.routers.frontend.rule=Host(`attentify.parzivalll.my.id`) && PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      # - traefik.http.routers.frontend.tls=rue
+
+  
+
+volumes:
+  pgdata:
+  data:
+
+networks:
+  public:
+    name: public
+    driver: bridge
+
+  traefik-net:
+    name: traefik-net
+    driver: bridge
+    internal: true

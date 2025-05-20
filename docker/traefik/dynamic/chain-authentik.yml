@@ -1,0 +1,9 @@
+http:
+  middlewares:
+    chain-authentik:
+      chain:
+        middlewares:
+          # - middlewares-rate-limit
+          # - cloudflarewarp
+          - middlewares-secure-headers
+          - middlewares-authentik
