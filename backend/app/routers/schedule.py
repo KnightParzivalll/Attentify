@@ -1,12 +1,16 @@
 from typing import List, OrderedDict
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import (
+    Group,
+    ScheduleGroup,
     Student,
     Teacher,
+    TermSchedule,
 )
 from app.auth import get_current_active_student, get_current_active_teacher
 from app.schemas.schedule import DayLessonResponse, WeekLessonResponse
@@ -176,3 +180,32 @@ async def get_student_weekly_schedule(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@teacher_router.get("/groups", response_model=List[dict])
+async def get_teacher_groups(
+    teacher: Teacher = Depends(get_current_active_teacher),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns a list of all groups where the authenticated teacher teaches.
+    It does so by joining term schedules and schedule_groups, then returns distinct groups.
+    """
+    # Query distinct group_ids from schedule_groups for term schedules taught by this teacher.
+    result = await db.execute(
+        select(ScheduleGroup.group_id)
+        .join(TermSchedule, ScheduleGroup.schedule_id == TermSchedule.id)
+        .where(TermSchedule.teacher_id == teacher.id)
+        .distinct()
+    )
+    group_ids = result.scalars().all()
+
+    if not group_ids:
+        return []
+
+    # Now, fetch the Group records corresponding to these group_ids.
+    result = await db.execute(select(Group).where(Group.id.in_(group_ids)))
+    groups = result.scalars().all()
+
+    # Map each group to a simple dictionary (adjust fields as needed)
+    return [{"group_id": g.id, "group_name": g.group_name_ru} for g in groups]

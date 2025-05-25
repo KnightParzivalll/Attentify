@@ -59,7 +59,15 @@
 		"teacherContact": "Teacher Contact",
 		"noContact": "No contact available",
 		"allGroups": "Participating Groups",
-		"noData": "No classes available"
+		"noData": "No classes available",
+		"attendance": {
+			"title": "Attendance List",
+			"loading": "Loading attendance...",
+			"error": "Failed to load attendance data.",
+			"present": "Present",
+			"absent": "Absent",
+			"noGroup": "No group assigned"
+		}
 	},
 	"layout": {
 		"schedule": "Schedule",

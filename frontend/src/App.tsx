@@ -1,5 +1,6 @@
 import { GlobalLayout } from 'components/layouts/GlobalLayout'
 import LoadingOrError from 'components/LoadingOrError'
+import Dashboard from 'pages/Dashboard'
 import LoginPage from 'pages/LoginPage'
 import TeacherSchedule from 'pages/TeacherSchedule'
 import type { ReactElement } from 'react'
@@ -83,6 +84,17 @@ export default function App(): ReactElement {
 							<ProtectedRoute>
 								<LayoutRoute>
 									<TeacherSchedule />
+								</LayoutRoute>
+							</ProtectedRoute>
+						}
+					/>
+
+					<Route
+						path='/attendance'
+						element={
+							<ProtectedRoute>
+								<LayoutRoute>
+									<Dashboard />
 								</LayoutRoute>
 							</ProtectedRoute>
 						}

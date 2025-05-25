@@ -7,3 +7,4 @@ fastapi-users[sqlalchemy]
 passlib[bcrypt]
 alembic
 pydantic-settings
+redis[asyncio]

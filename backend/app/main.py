@@ -9,7 +9,7 @@ from app.auth import (
     auth_cookie_backend,
 )
 from app.global_schemas import UserRead, UserUpdate
-from app.routers import schedule, profile
+from app.routers import schedule, profile, session, attendance, debug
 
 
 @asynccontextmanager
@@ -64,3 +64,8 @@ app.include_router(schedule.teacher_router)
 app.include_router(schedule.student_router)
 
 app.include_router(profile.router)
+app.include_router(session.router)
+
+app.include_router(attendance.router)
+
+app.include_router(debug.router)

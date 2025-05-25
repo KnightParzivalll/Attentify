@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from 'App'
 import { Provider } from 'components/ui/provider'
+import { Toaster } from 'components/ui/toaster'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { AuthProvider } from './contexts/AuthContext'
@@ -26,6 +27,7 @@ if (container) {
 		<Provider>
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
+					<Toaster />
 					<App />
 				</AuthProvider>
 			</QueryClientProvider>

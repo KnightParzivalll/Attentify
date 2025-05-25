@@ -2,7 +2,7 @@ import { IGroups } from 'types/group'
 
 export default async function getGroups(token: string): Promise<IGroups[]> {
 	const response = await fetch(
-		`${import.meta.env.VITE_API_URL}/teacher/groups`,
+		`${import.meta.env.VITE_API_URL}/teacher/schedule/groups`,
 		{
 			method: 'GET',
 			headers: {

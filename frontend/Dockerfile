@@ -1,22 +1,22 @@
-# Stage 1: Build the Frontend Application
-FROM node:23.10.0-alpine3.20 AS builder
+# # Stage 1: Build the Frontend Application
+# FROM node:23.10.0-alpine3.20 AS builder
 
-# Install pnpm globally (specific version for consistency)
-RUN npm install -g pnpm@9.11.0
+# # Install pnpm globally (specific version for consistency)
+# RUN npm install -g pnpm@9.11.0
 
-WORKDIR /app
+# WORKDIR /app
 
-# Copy only dependency files first to leverage Docker layer caching
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# # Copy only dependency files first to leverage Docker layer caching
+# COPY package.json pnpm-lock.yaml ./
+# RUN pnpm install --frozen-lockfile
 
 
-# Copy the rest of the source code (including environment file if required)
-COPY . .
+# # Copy the rest of the source code (including environment file if required)
+# COPY . .
 
-# Build production assets
-# RUN pnpm build
-RUN pnpm exec vite build
+# # Build production assets
+# # RUN pnpm build
+# RUN pnpm exec vite build
 
 # Stage 2: Serve the Built Assets with Nginx (Unprivileged)
 FROM nginxinc/nginx-unprivileged:1.27-alpine
@@ -38,7 +38,8 @@ RUN chown -R nginx:nginx /var/cache/nginx && \
 USER nginx
 
 # Copy built frontend assets
-COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
+# COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
+COPY --chown=nginx:nginx ./dist /usr/share/nginx/html
 
 # Expose the port on which Nginx will serve the content (should match Traefik's configuration)
 # EXPOSE 8080
