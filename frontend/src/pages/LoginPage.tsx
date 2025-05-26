@@ -5,10 +5,10 @@ import { Checkbox } from '../components/ui/checkbox'
 import { ColorModeButton, useColorModeValue } from '../components/ui/color-mode'
 
 import type { BoxProps } from '@chakra-ui/react'
+import { LogoIcon } from 'components/layouts/LogoIcon'
 import { ThemedTitleV2 } from 'components/themedTitle'
 import { PasswordInput } from 'components/ui/password-input'
 import { useAuth } from 'contexts/AuthContext'
-import { HiHeart } from 'react-icons/hi'
 import { useNavigate } from 'react-router-dom'
 
 export const layoutProps: BoxProps = {
@@ -69,8 +69,12 @@ const LoginPage: React.FC = ({}) => {
 				fontSize: '20px'
 			}}
 		>
-			<ThemedTitleV2 collapsed={false} text='Testing'>
+			{/* <ThemedTitleV2 collapsed={false} text='Testing'>
 				<HiHeart />
+			</ThemedTitleV2> */}
+
+			<ThemedTitleV2 collapsed={false} text='Attentify'>
+				<LogoIcon />
 			</ThemedTitleV2>
 		</div>
 	)
