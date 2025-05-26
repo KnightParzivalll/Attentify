@@ -1,7 +1,11 @@
-import { Text } from '@chakra-ui/react'
+import { Flex, Text } from '@chakra-ui/react'
+import { LogoIcon } from './LogoIcon'
 
 export const Logo = () => (
-	<Text fontSize='2xl' fontFamily='monospace' fontWeight='bold'>
-		Logo
-	</Text>
+	<Flex alignItems={'center'} gap={4}>
+		<LogoIcon />
+		<Text fontSize='xl' fontFamily='Inter' fontWeight='bold'>
+			Attentify
+		</Text>
+	</Flex>
 )
